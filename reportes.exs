@@ -155,7 +155,7 @@ defmodule Reportes do
   end
 
   #R5
-  
+
     @doc """
   Encuentra los productores con más litros entregados en cada día.
   Recibe únicamente entregas válidas.
@@ -253,6 +253,85 @@ defmodule Reportes do
         nombre = Map.get(nombres, codigo, codigo)
         IO.puts("  #{nombre} (#{codigo}): #{dias} día(s)")
       end)
+    end
+
+    :ok
+  end
+
+  #R6
+
+    @doc """
+  Encuentra al productor con mejor porcentaje de grasa ponderado por litros,
+  considerando solo quienes tienen al menos 3 entregas válidas.
+  """
+  def mejor_calidad(entregas_validas, productores) do
+    candidatos =
+      Enum.flat_map(productores, fn productor ->
+        entregas_productor =
+          Enum.filter(entregas_validas, fn entrega ->
+            entrega.productor == productor.codigo
+          end)
+
+        if length(entregas_productor) >= 3 do
+          litros_totales =
+            entregas_productor
+            |> Enum.map(fn entrega -> entrega.litros end)
+            |> Enum.sum()
+
+          suma_grasa_ponderada =
+            entregas_productor
+            |> Enum.map(fn entrega -> entrega.grasa * entrega.litros end)
+            |> Enum.sum()
+
+          [
+            %{
+              codigo: productor.codigo,
+              nombre: productor.nombre,
+              cantidad_entregas: length(entregas_productor),
+              porcentaje_ponderado: suma_grasa_ponderada / litros_totales
+            }
+          ]
+        else
+          []
+        end
+      end)
+
+    case candidatos do
+      [] ->
+        []
+
+      _ ->
+        maximo =
+          candidatos
+          |> Enum.map(fn candidato -> candidato.porcentaje_ponderado end)
+          |> Enum.max()
+
+        candidatos
+        |> Enum.filter(fn candidato ->
+          candidato.porcentaje_ponderado == maximo
+        end)
+        |> Enum.sort_by(fn candidato -> candidato.codigo end)
+    end
+  end
+
+  @doc """
+  Imprime el resultado del reporte R6.
+  """
+  def imprimir_r6(mejores) do
+    IO.puts("\nR6. Productor con mejor calidad de leche")
+
+    case mejores do
+      [] ->
+        IO.puts("No hay productores con al menos 3 entregas válidas.")
+
+      _ ->
+        Enum.each(mejores, fn productor ->
+          IO.puts(
+            "#{productor.nombre} (#{productor.codigo}) | " <>
+              "Entregas válidas: #{productor.cantidad_entregas} | " <>
+              "Grasa ponderada: #{formatear_porcentaje(productor.porcentaje_ponderado)}"
+          )
+        end)
     end
 
     :ok
