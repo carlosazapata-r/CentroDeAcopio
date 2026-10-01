@@ -106,7 +106,7 @@ defmodule Reportes do
   end
 
   def imprimir_r3(litros_dia) do
-    IO.puts("\n===== R3. Litros recibidos por día (meta: #{@meta_diaria} L) =====")
+    IO.puts("\n R3. Litros recibidos por día (meta: #{@meta_diaria} L) ")
 
     Enum.each(1..@dias, fn dia ->
       litros = Map.get(litros_dia, dia, 0)
