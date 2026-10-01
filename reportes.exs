@@ -154,6 +154,110 @@ defmodule Reportes do
     :ok
   end
 
+  #R5
+  
+    @doc """
+  Encuentra los productores con más litros entregados en cada día.
+  Recibe únicamente entregas válidas.
+  """
+  def lideres_por_dia(entregas_validas) do
+    litros_por_productor =
+      entregas_validas
+      |> Enum.group_by(fn entrega -> {entrega.dia, entrega.productor} end)
+      |> Enum.map(fn {{dia, codigo}, entregas} ->
+        litros =
+          entregas
+          |> Enum.map(fn entrega -> entrega.litros end)
+          |> Enum.sum()
+
+        %{dia: dia, codigo: codigo, litros: litros}
+      end)
+
+    for dia <- 1..@dias do
+      productores_del_dia =
+        Enum.filter(litros_por_productor, fn productor ->
+          productor.dia == dia
+        end)
+
+      case productores_del_dia do
+        [] ->
+          %{dia: dia, ganadores: []}
+
+        _ ->
+          maximo_litros =
+            productores_del_dia
+            |> Enum.map(fn productor -> productor.litros end)
+            |> Enum.max()
+
+          ganadores =
+            productores_del_dia
+            |> Enum.filter(fn productor -> productor.litros == maximo_litros end)
+            |> Enum.sort_by(fn productor -> productor.codigo end)
+
+          %{dia: dia, ganadores: ganadores}
+      end
+    end
+  end
+
+  @doc """
+  Imprime los líderes diarios y quiénes ocuparon el primer lugar más días.
+  """
+  def imprimir_r5(lideres_por_dia, productores) do
+    nombres =
+      Map.new(productores, fn productor ->
+        {productor.codigo, productor.nombre}
+      end)
+
+    IO.puts("\nR5. Productores con más litros por día")
+
+    Enum.each(lideres_por_dia, fn resultado_dia ->
+      IO.puts("Día #{resultado_dia.dia}:")
+
+      case resultado_dia.ganadores do
+        [] ->
+          IO.puts("  Sin entregas válidas")
+
+        ganadores ->
+          Enum.each(ganadores, fn ganador ->
+            nombre = Map.get(nombres, ganador.codigo, ganador.codigo)
+
+            IO.puts(
+              "  #{nombre} (#{ganador.codigo}): " <>
+                "#{formatear_litros(ganador.litros)} L"
+            )
+          end)
+      end
+    end)
+
+    frecuencias =
+      lideres_por_dia
+      |> Enum.flat_map(fn resultado_dia ->
+        Enum.map(resultado_dia.ganadores, fn ganador -> ganador.codigo end)
+      end)
+      |> Enum.frequencies()
+
+    IO.puts("\nPrimer lugar durante más días:")
+
+    if map_size(frecuencias) == 0 do
+      IO.puts("  No hubo entregas válidas")
+    else
+      maximos_dias =
+        frecuencias
+        |> Map.values()
+        |> Enum.max()
+
+      frecuencias
+      |> Enum.filter(fn {_codigo, dias} -> dias == maximos_dias end)
+      |> Enum.sort_by(fn {codigo, _dias} -> codigo end)
+      |> Enum.each(fn {codigo, dias} ->
+        nombre = Map.get(nombres, codigo, codigo)
+        IO.puts("  #{nombre} (#{codigo}): #{dias} día(s)")
+      end)
+    end
+
+    :ok
+  end
+
 
   defp formatear_litros(litros), do: Float.to_string(Float.round(litros / 1, 1))
 
