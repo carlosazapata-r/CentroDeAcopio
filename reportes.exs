@@ -154,6 +154,270 @@ defmodule Reportes do
     :ok
   end
 
+  #R5
+
+    @doc """
+  Encuentra los productores con más litros entregados en cada día.
+  Recibe únicamente entregas válidas.
+  """
+  def lideres_por_dia(entregas_validas) do
+    litros_por_productor =
+      entregas_validas
+      |> Enum.group_by(fn entrega -> {entrega.dia, entrega.productor} end)
+      |> Enum.map(fn {{dia, codigo}, entregas} ->
+        litros =
+          entregas
+          |> Enum.map(fn entrega -> entrega.litros end)
+          |> Enum.sum()
+
+        %{dia: dia, codigo: codigo, litros: litros}
+      end)
+
+    for dia <- 1..@dias do
+      productores_del_dia =
+        Enum.filter(litros_por_productor, fn productor ->
+          productor.dia == dia
+        end)
+
+      case productores_del_dia do
+        [] ->
+          %{dia: dia, ganadores: []}
+
+        _ ->
+          maximo_litros =
+            productores_del_dia
+            |> Enum.map(fn productor -> productor.litros end)
+            |> Enum.max()
+
+          ganadores =
+            productores_del_dia
+            |> Enum.filter(fn productor -> productor.litros == maximo_litros end)
+            |> Enum.sort_by(fn productor -> productor.codigo end)
+
+          %{dia: dia, ganadores: ganadores}
+      end
+    end
+  end
+
+  @doc """
+  Imprime los líderes diarios y quiénes ocuparon el primer lugar más días.
+  """
+  def imprimir_r5(lideres_por_dia, productores) do
+    nombres =
+      Map.new(productores, fn productor ->
+        {productor.codigo, productor.nombre}
+      end)
+
+    IO.puts("\nR5. Productores con más litros por día")
+
+    Enum.each(lideres_por_dia, fn resultado_dia ->
+      IO.puts("Día #{resultado_dia.dia}:")
+
+      case resultado_dia.ganadores do
+        [] ->
+          IO.puts("  Sin entregas válidas")
+
+        ganadores ->
+          Enum.each(ganadores, fn ganador ->
+            nombre = Map.get(nombres, ganador.codigo, ganador.codigo)
+
+            IO.puts(
+              "  #{nombre} (#{ganador.codigo}): " <>
+                "#{formatear_litros(ganador.litros)} L"
+            )
+          end)
+      end
+    end)
+
+    frecuencias =
+      lideres_por_dia
+      |> Enum.flat_map(fn resultado_dia ->
+        Enum.map(resultado_dia.ganadores, fn ganador -> ganador.codigo end)
+      end)
+      |> Enum.frequencies()
+
+    IO.puts("\nPrimer lugar durante más días:")
+
+    if map_size(frecuencias) == 0 do
+      IO.puts("  No hubo entregas válidas")
+    else
+      maximos_dias =
+        frecuencias
+        |> Map.values()
+        |> Enum.max()
+
+      frecuencias
+      |> Enum.filter(fn {_codigo, dias} -> dias == maximos_dias end)
+      |> Enum.sort_by(fn {codigo, _dias} -> codigo end)
+      |> Enum.each(fn {codigo, dias} ->
+        nombre = Map.get(nombres, codigo, codigo)
+        IO.puts("  #{nombre} (#{codigo}): #{dias} día(s)")
+      end)
+    end
+
+    :ok
+  end
+
+  #R6
+
+    @doc """
+  Encuentra al productor con mejor porcentaje de grasa ponderado por litros,
+  considerando solo quienes tienen al menos 3 entregas válidas.
+  """
+  def mejor_calidad(entregas_validas, productores) do
+    candidatos =
+      Enum.flat_map(productores, fn productor ->
+        entregas_productor =
+          Enum.filter(entregas_validas, fn entrega ->
+            entrega.productor == productor.codigo
+          end)
+
+        if length(entregas_productor) >= 3 do
+          litros_totales =
+            entregas_productor
+            |> Enum.map(fn entrega -> entrega.litros end)
+            |> Enum.sum()
+
+          suma_grasa_ponderada =
+            entregas_productor
+            |> Enum.map(fn entrega -> entrega.grasa * entrega.litros end)
+            |> Enum.sum()
+
+          [
+            %{
+              codigo: productor.codigo,
+              nombre: productor.nombre,
+              cantidad_entregas: length(entregas_productor),
+              porcentaje_ponderado: suma_grasa_ponderada / litros_totales
+            }
+          ]
+        else
+          []
+        end
+      end)
+
+    case candidatos do
+      [] ->
+        []
+
+      _ ->
+        maximo =
+          candidatos
+          |> Enum.map(fn candidato -> candidato.porcentaje_ponderado end)
+          |> Enum.max()
+
+        candidatos
+        |> Enum.filter(fn candidato ->
+          candidato.porcentaje_ponderado == maximo
+        end)
+        |> Enum.sort_by(fn candidato -> candidato.codigo end)
+    end
+  end
+
+  @doc """
+  Imprime el resultado del reporte R6.
+  """
+  def imprimir_r6(mejores) do
+    IO.puts("\nR6. Productor con mejor calidad de leche")
+
+    case mejores do
+      [] ->
+        IO.puts("No hay productores con al menos 3 entregas válidas.")
+
+      _ ->
+        Enum.each(mejores, fn productor ->
+          IO.puts(
+            "#{productor.nombre} (#{productor.codigo}) | " <>
+              "Entregas válidas: #{productor.cantidad_entregas} | " <>
+              "Grasa ponderada: #{formatear_porcentaje(productor.porcentaje_ponderado)}"
+          )
+        end)
+    end
+
+    :ok
+  end
+
+  #R7
+
+    @doc """
+  Calcula el total pagado y el costo promedio por litro de la semana.
+  """
+  def resumen_r7(liquidacion) do
+    total_pagado =
+      liquidacion
+      |> Enum.map(fn productor -> productor.neto end)
+      |> Enum.sum()
+
+    total_litros =
+      liquidacion
+      |> Enum.map(fn productor -> productor.litros end)
+      |> Enum.sum()
+
+    costo_promedio =
+      if total_litros > 0 do
+        total_pagado / total_litros
+      else
+        nil
+      end
+
+    %{
+      total_pagado: total_pagado,
+      total_litros: total_litros,
+      costo_promedio: costo_promedio
+    }
+  end
+
+  @doc """
+  Imprime el total pagado y el costo promedio por litro.
+  """
+  def imprimir_r7(resumen) do
+    IO.puts("\nR7. Total pagado y costo promedio por litro")
+    IO.puts("Total pagado: #{formatear_pesos(resumen.total_pagado)}")
+    IO.puts("Litros válidos recibidos: #{formatear_litros(resumen.total_litros)} L")
+
+    case resumen.costo_promedio do
+      nil ->
+        IO.puts("Costo promedio: no calculable porque no hubo litros recibidos")
+
+      costo ->
+        IO.puts("Costo promedio pagado por litro: $#{Float.round(costo, 2)}")
+    end
+
+    :ok
+  end
+
+  #R8
+    @doc """
+  Devuelve los productores con al menos una entrega válida en cada tanque.
+  """
+  def productores_en_todos_los_tanques(entregas_validas, productores, tanques) do
+    Enum.filter(productores, fn productor ->
+      Enum.all?(tanques, fn tanque ->
+        Enum.any?(entregas_validas, fn entrega ->
+          entrega.productor == productor.codigo and entrega.tanque == tanque.id
+        end)
+      end)
+    end)
+  end
+
+  @doc """
+  Imprime los productores que realizaron entregas válidas en todos los tanques.
+  """
+  def imprimir_r8(productores) do
+    IO.puts("\nR8. Productores con entregas válidas en todos los tanques")
+
+    case productores do
+      [] ->
+        IO.puts("Ningún productor entregó leche en todos los tanques.")
+
+      _ ->
+        Enum.each(productores, fn productor ->
+          IO.puts("#{productor.nombre} (#{productor.codigo})")
+        end)
+    end
+
+    :ok
+  end
 
   defp formatear_litros(litros), do: Float.to_string(Float.round(litros / 1, 1))
 
