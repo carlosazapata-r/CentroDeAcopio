@@ -98,7 +98,7 @@ defmodule Liquidacion do
       0
     end
   end
-end
+
   @doc """
   Construye el comprobante de un productor. Devuelve un error si el código no existe.
   """
@@ -191,3 +191,4 @@ end
   defp formatear_moneda(valor) do
     "$#{round(valor)}"
   end
+end
