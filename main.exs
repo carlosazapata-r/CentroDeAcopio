@@ -1,5 +1,4 @@
-# Carlos Alberto Zapata Rangel - Isabella Valencia Gomez
-
+# Integrantes: Carlos Alberto Zapata Rangel - Isabella Valencia Gomez
 
 Code.require_file("datos.exs", __DIR__)
 Code.require_file("validacion.exs", __DIR__)
@@ -10,7 +9,8 @@ defmodule Principal do
   @moduledoc "Coordina el proceso de liquidación del centro de acopio."
 
   @doc """
-  Carga los datos, procesa una entrega adicional, imprime los reportes
+  Carga los datos, mide la validación inicial y la liquidación,
+  procesa una entrega adicional, imprime los reportes
   y solicita el comprobante de un productor.
   """
   def ejecutar do
@@ -18,15 +18,27 @@ defmodule Principal do
     tanques = Datos.tanques()
     entregas = Datos.entregas()
 
-    {validas, rechazadas} =
-      Validacion.validar_todas(entregas, productores, tanques)
+    # Mide el tiempo de validación de las entregas iniciales.
+    {tiempo_validacion, {validas, rechazadas}} =
+      :timer.tc(fn ->
+        Validacion.validar_todas(entregas, productores, tanques)
+      end)
 
     {validas, rechazadas} =
       solicitar_entrega_adicional(validas, rechazadas, productores, tanques)
 
-    liquidacion = Liquidacion.calcular(productores, validas)
+    # Mide la liquidación con las entregas válidas, incluida la adicional si fue aceptada.
+    {tiempo_liquidacion, liquidacion} =
+      :timer.tc(fn ->
+        Liquidacion.calcular(productores, validas)
+      end)
 
     imprimir_reportes(validas, rechazadas, productores, tanques, liquidacion)
+
+    IO.puts("\nMediciones propias")
+    IO.puts("Validación inicial: #{tiempo_validacion} microsegundos")
+    IO.puts("Liquidación semanal: #{tiempo_liquidacion} microsegundos")
+
     solicitar_comprobante(productores, validas)
   end
 
