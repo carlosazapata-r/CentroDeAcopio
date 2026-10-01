@@ -3,7 +3,28 @@
 # Traspaso de datos de planilla del centro de acopio
 
 defmodule Datos do
+  @moduledoc """
+  Datos de la planilla del centro de acopio de leche.
 
+  Expone tres listas fijas: `productores/0`, `tanques/0` y `entregas/0`
+  (días 1 al 6, con entregas válidas e inválidas).
+  """
+
+  @doc """
+  Devuelve los 10 productores registrados (P01 a P10).
+
+  Cada mapa tiene `:codigo`, `:nombre` y `:transporte` (`true` si usa el
+  servicio de transporte). P10 usa transporte pero no tiene entregas válidas.
+
+  ## Examples
+
+      iex> Datos.productores() |> length()
+      10
+
+      iex> Datos.productores() |> List.first()
+      %{codigo: "P01", nombre: "Marta Gómez", transporte: true}
+
+  """
   def productores do
     [
       %{codigo: "P01", nombre: "Marta Gómez", transporte: true},
@@ -19,6 +40,21 @@ defmodule Datos do
       %{codigo: "P10", nombre: "Paula Mejía", transporte: true}
     ]
   end
+
+  @doc """
+  Devuelve los 4 tanques de almacenamiento (T1 a T4).
+
+  Cada mapa tiene `:id`, `:nombre` y `:capacidad` (en litros).
+
+  ## Examples
+
+      iex> Datos.tanques() |> length()
+      4
+
+      iex> Datos.tanques() |> List.first()
+      %{id: "T1", nombre: "Tanque Norte", capacidad: 6000}
+
+  """
      def tanques do
     [
       %{id: "T1", nombre: "Tanque Norte", capacidad: 6000},
@@ -27,6 +63,22 @@ defmodule Datos do
       %{id: "T4", nombre: "Tanque Oriente", capacidad: 4000}
     ]
   end
+
+  @doc """
+  Devuelve las 97 entregas del periodo: 82 válidas (días 1 al 6) y 15
+  inválidas al final.
+
+  Cada mapa tiene `:productor`, `:tanque`, `:dia`, `:litros` y `:grasa`.
+
+  Entre las válidas, los días 2 y 5 no llegan a la meta de 2000 L, y hay una
+  `:grasa` entera (`3`) a propósito. Las inválidas se rechazan por un solo
+  motivo cada una: `:productor_desconocido` (3), `:tanque_desconocido` (2),
+  `:dia_invalido` (3), `:litros_fuera_de_rango` (4) y `:porcentaje_invalido`
+  (3). Algunas traen tipos incorrectos a propósito (texto en `:litros` o
+  `:grasa`, día decimal).
+
+
+  """
   # 82 entregas válidas y 15 inválidas al final
   def entregas do
     [
