@@ -80,4 +80,38 @@ defmodule Reportes do
 
     :ok
   end
+   # R3: litros por día y meta 
+
+  # Devuelve un mapa %{1 => litros, ..., 6 => litros}. Los días sin entregas quedan en 0
+  def litros_por_dia(validas) do
+    por_dia = Enum.group_by(validas, fn e -> e.dia end)
+
+    for dia <- 1..@dias, into: %{} do
+      litros =
+        por_dia
+        |> Map.get(dia, [])
+        |> Enum.map(fn e -> e.litros end)
+        |> Enum.sum()
+
+      {dia, litros}
+    end
+  end
+
+  def imprimir_r3(litros_dia) do
+    IO.puts("\n===== R3. Litros recibidos por día (meta: #{@meta_diaria} L) =====")
+
+    Enum.each(1..@dias, fn dia ->
+      litros = Map.get(litros_dia, dia, 0)
+      estado = if litros >= @meta_diaria, do: "meta alcanzada", else: "meta NO alcanzada"
+      IO.puts("Dia #{dia}: #{String.pad_leading(formatear_litros(litros), 9)} L  -> #{estado}")
+    end)
+
+    valores = Map.values(litros_dia)
+    todos = Enum.all?(valores, fn l -> l >= @meta_diaria end)
+    alguno = Enum.any?(valores, fn l -> l >= @meta_diaria end)
+
+    IO.puts("\nMeta cumplida todos los días: #{si_no(todos)}")
+    IO.puts("Meta cumplida al menos un día: #{si_no(alguno)}")
+    :ok
+  end
 end
