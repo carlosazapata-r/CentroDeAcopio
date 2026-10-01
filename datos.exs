@@ -1,3 +1,5 @@
+# Integrantes: Carlos Alberto Zapata Rangel - Isabella Valencia Gomez
+
 # Traspaso de datos de planilla del centro de acopio
 
 defmodule Datos do
@@ -155,4 +157,3 @@ defmodule Datos do
     ]
   end
   end
-

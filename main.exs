@@ -1,3 +1,5 @@
+# Integrantes: Carlos Alberto Zapata Rangel - Isabella Valencia Gomez
+
 Code.require_file("datos.exs", __DIR__)
 Code.require_file("validacion.exs", __DIR__)
 Code.require_file("liquidacion.exs", __DIR__)

@@ -1,3 +1,5 @@
+# Integrantes: Carlos Alberto Zapata Rangel - Isabella Valencia Gomez
+
 # Reportes
 
 defmodule Reportes do

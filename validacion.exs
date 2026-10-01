@@ -1,3 +1,5 @@
+# Integrantes: Carlos Alberto Zapata Rangel - Isabella Valencia Gomez
+
 # Validación de entregas
 
 defmodule Validacion do
