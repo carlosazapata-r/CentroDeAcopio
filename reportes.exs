@@ -26,18 +26,18 @@ defmodule Reportes do
     for motivo <- @motivos, do: {motivo, Map.get(frecuencias, motivo, 0)}
   end
   def imprimir_r1(rechazadas, conteos) do
-    IO.puts("\n R1 Entregas rechazadas :  ")
+    Util.mostrar("\n R1 Entregas rechazadas :  ")
 
     # mirar porque dia, litros y grasa pueden venir como texto
     Enum.each(rechazadas, fn {e, motivo} ->
-      IO.puts(
+      Util.mostrar(
         "#{e.productor} | #{e.tanque} | dia #{inspect(e.dia)} | " <>
           "litros #{inspect(e.litros)} | grasa #{inspect(e.grasa)} -> #{motivo}"
       )
     end)
 
-    IO.puts("\nRechazos por motivo:")
-    Enum.each(conteos, fn {motivo, cantidad} -> IO.puts("  #{motivo}: #{cantidad}") end)
+    Util.mostrar("\nRechazos por motivo:")
+    Enum.each(conteos, fn {motivo, cantidad} -> Util.mostrar("  #{motivo}: #{cantidad}") end)
     :ok
   end
   # R2: ocupación de tanques
@@ -66,10 +66,10 @@ defmodule Reportes do
     Enum.sort_by(ocupacion, fn t -> t.porcentaje end, :desc)
   end
   def imprimir_r2(ocupacion) do
-    IO.puts("\n R2. Ocupación de tanques : ")
+    Util.mostrar("\n R2. Ocupación de tanques : ")
 
     Enum.each(ocupacion, fn t ->
-      IO.puts(
+      Util.mostrar(
         String.pad_trailing(t.id, 5) <>
           String.pad_trailing(t.nombre, 18) <>
           String.pad_leading(formatear_litros(t.litros), 9) <>
@@ -106,20 +106,20 @@ defmodule Reportes do
   end
 
   def imprimir_r3(litros_dia) do
-    IO.puts("\n R3. Litros recibidos por día (meta: #{@meta_diaria} L) ")
+    Util.mostrar("\n R3. Litros recibidos por día (meta: #{@meta_diaria} L) ")
 
     Enum.each(1..@dias, fn dia ->
       litros = Map.get(litros_dia, dia, 0)
       estado = if litros >= @meta_diaria, do: "meta alcanzada", else: "meta NO alcanzada"
-      IO.puts("Dia #{dia}: #{String.pad_leading(formatear_litros(litros), 9)} L  -> #{estado}")
+      Util.mostrar("Dia #{dia}: #{String.pad_leading(formatear_litros(litros), 9)} L  -> #{estado}")
     end)
 
     valores = Map.values(litros_dia)
     todos = Enum.all?(valores, fn l -> l >= @meta_diaria end)
     alguno = Enum.any?(valores, fn l -> l >= @meta_diaria end)
 
-    IO.puts("\nMeta cumplida todos los días: #{si_no(todos)}")
-    IO.puts("Meta cumplida al menos un día: #{si_no(alguno)}")
+    Util.mostrar("\nMeta cumplida todos los días: #{si_no(todos)}")
+    Util.mostrar("Meta cumplida al menos un día: #{si_no(alguno)}")
     :ok
   end
    # R4: liquidación de productores
@@ -131,9 +131,9 @@ defmodule Reportes do
   end
 
   def imprimir_r4(liquidacion_ordenada) do
-    IO.puts("\nR4. Liquidación de productores : ")
+    Util.mostrar("\nR4. Liquidación de productores : ")
 
-    IO.puts(
+    Util.mostrar(
       String.pad_trailing("#", 4) <>
         String.pad_trailing("Cod", 6) <>
         String.pad_trailing("Nombre", 18) <>
@@ -147,7 +147,7 @@ defmodule Reportes do
     liquidacion_ordenada
     |> Enum.with_index(1)
     |> Enum.each(fn {p, posicion} ->
-      IO.puts(
+      Util.mostrar(
         String.pad_trailing("#{posicion}", 4) <>
           String.pad_trailing(p.codigo, 6) <>
           String.pad_trailing(p.nombre, 18) <>
@@ -216,20 +216,20 @@ defmodule Reportes do
         {productor.codigo, productor.nombre}
       end)
 
-    IO.puts("\nR5. Productores con más litros por día")
+    Util.mostrar("\nR5. Productores con más litros por día")
 
     Enum.each(lideres_por_dia, fn resultado_dia ->
-      IO.puts("Día #{resultado_dia.dia}:")
+      Util.mostrar("Día #{resultado_dia.dia}:")
 
       case resultado_dia.ganadores do
         [] ->
-          IO.puts("  Sin entregas válidas")
+          Util.mostrar("  Sin entregas válidas")
 
         ganadores ->
           Enum.each(ganadores, fn ganador ->
             nombre = Map.get(nombres, ganador.codigo, ganador.codigo)
 
-            IO.puts(
+            Util.mostrar(
               "  #{nombre} (#{ganador.codigo}): " <>
                 "#{formatear_litros(ganador.litros)} L"
             )
@@ -244,10 +244,10 @@ defmodule Reportes do
       end)
       |> Enum.frequencies()
 
-    IO.puts("\nPrimer lugar durante más días:")
+    Util.mostrar("\nPrimer lugar durante más días:")
 
     if map_size(frecuencias) == 0 do
-      IO.puts("  No hubo entregas válidas")
+      Util.mostrar("  No hubo entregas válidas")
     else
       maximos_dias =
         frecuencias
@@ -259,7 +259,7 @@ defmodule Reportes do
       |> Enum.sort_by(fn {codigo, _dias} -> codigo end)
       |> Enum.each(fn {codigo, dias} ->
         nombre = Map.get(nombres, codigo, codigo)
-        IO.puts("  #{nombre} (#{codigo}): #{dias} día(s)")
+        Util.mostrar("  #{nombre} (#{codigo}): #{dias} día(s)")
       end)
     end
 
@@ -326,15 +326,15 @@ defmodule Reportes do
   Imprime el resultado del reporte R6.
   """
   def imprimir_r6(mejores) do
-    IO.puts("\nR6. Productor con mejor calidad de leche")
+    Util.mostrar("\nR6. Productor con mejor calidad de leche")
 
     case mejores do
       [] ->
-        IO.puts("No hay productores con al menos 3 entregas válidas.")
+        Util.mostrar("No hay productores con al menos 3 entregas válidas.")
 
       _ ->
         Enum.each(mejores, fn productor ->
-          IO.puts(
+          Util.mostrar(
             "#{productor.nombre} (#{productor.codigo}) | " <>
               "Entregas válidas: #{productor.cantidad_entregas} | " <>
               "Grasa ponderada: #{formatear_porcentaje(productor.porcentaje_ponderado)}"
@@ -379,16 +379,16 @@ defmodule Reportes do
   Imprime el total pagado y el costo promedio por litro.
   """
   def imprimir_r7(resumen) do
-    IO.puts("\nR7. Total pagado y costo promedio por litro")
-    IO.puts("Total pagado: #{formatear_pesos(resumen.total_pagado)}")
-    IO.puts("Litros válidos recibidos: #{formatear_litros(resumen.total_litros)} L")
+    Util.mostrar("\nR7. Total pagado y costo promedio por litro")
+    Util.mostrar("Total pagado: #{formatear_pesos(resumen.total_pagado)}")
+    Util.mostrar("Litros válidos recibidos: #{formatear_litros(resumen.total_litros)} L")
 
     case resumen.costo_promedio do
       nil ->
-        IO.puts("Costo promedio: no calculable porque no hubo litros recibidos")
+        Util.mostrar("Costo promedio: no calculable porque no hubo litros recibidos")
 
       costo ->
-        IO.puts("Costo promedio pagado por litro: $#{Float.round(costo, 2)}")
+        Util.mostrar("Costo promedio pagado por litro: $#{Float.round(costo, 2)}")
     end
 
     :ok
@@ -412,15 +412,15 @@ defmodule Reportes do
   Imprime los productores que realizaron entregas válidas en todos los tanques.
   """
   def imprimir_r8(productores) do
-    IO.puts("\nR8. Productores con entregas válidas en todos los tanques")
+    Util.mostrar("\nR8. Productores con entregas válidas en todos los tanques")
 
     case productores do
       [] ->
-        IO.puts("Ningún productor entregó leche en todos los tanques.")
+        Util.mostrar("Ningún productor entregó leche en todos los tanques.")
 
       _ ->
         Enum.each(productores, fn productor ->
-          IO.puts("#{productor.nombre} (#{productor.codigo})")
+          Util.mostrar("#{productor.nombre} (#{productor.codigo})")
         end)
     end
 
