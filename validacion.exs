@@ -1,4 +1,4 @@
-# Validación de entregas 
+# Validación de entregas
 
 defmodule Validacion do
   @dia_minimo 1
@@ -18,4 +18,15 @@ defmodule Validacion do
       {:ok, entrega}
     end
   end
+  # Valida toda la lista y la separa en {validas, rechazadas}.
+  # rechazadas es una lista de {entrega, motivo}
+  def validar_todas(entregas, productores, tanques) do
+    resultados = for e <- entregas, do: {e, validar_entrega(e, productores, tanques)}
+
+    validas = for {e, {:ok, _}} <- resultados, do: e
+    rechazadas = for {e, {:error, motivo}} <- resultados, do: {e, motivo}
+
+    {validas, rechazadas}
+  end
+
 end
