@@ -1,0 +1,119 @@
+# Carlos Alberto Zapata Rangel - Isabella Valencia Gomez
+
+
+Code.require_file("datos.exs", __DIR__)
+Code.require_file("validacion.exs", __DIR__)
+Code.require_file("liquidacion.exs", __DIR__)
+Code.require_file("reportes.exs", __DIR__)
+
+defmodule Principal do
+  @moduledoc "Coordina el proceso de liquidación del centro de acopio."
+
+  @doc """
+  Carga los datos, procesa una entrega adicional, imprime los reportes
+  y solicita el comprobante de un productor.
+  """
+  def ejecutar do
+    productores = Datos.productores()
+    tanques = Datos.tanques()
+    entregas = Datos.entregas()
+
+    {validas, rechazadas} =
+      Validacion.validar_todas(entregas, productores, tanques)
+
+    {validas, rechazadas} =
+      solicitar_entrega_adicional(validas, rechazadas, productores, tanques)
+
+    liquidacion = Liquidacion.calcular(productores, validas)
+
+    imprimir_reportes(validas, rechazadas, productores, tanques, liquidacion)
+    solicitar_comprobante(productores, validas)
+  end
+
+  defp solicitar_entrega_adicional(validas, rechazadas, productores, tanques) do
+    IO.puts("\nIngrese una entrega adicional")
+    IO.puts("(productor;tanque;dia;litros;grasa)")
+    IO.write("o Enter para omitir: ")
+
+    case IO.gets("") do
+      nil ->
+        {validas, rechazadas}
+
+      texto ->
+        if String.trim(texto) == "" do
+          {validas, rechazadas}
+        else
+          procesar_entrega_adicional(
+            texto,
+            validas,
+            rechazadas,
+            productores,
+            tanques
+          )
+        end
+    end
+  end
+
+  defp procesar_entrega_adicional(texto, validas, rechazadas, productores, tanques) do
+    case Validacion.parsear_entrega(texto) do
+      {:ok, entrega} ->
+        case Validacion.validar_entrega(entrega, productores, tanques) do
+          {:ok, entrega_valida} ->
+            IO.puts("La entrega adicional fue aceptada.")
+            {validas ++ [entrega_valida], rechazadas}
+
+          {:error, motivo} ->
+            IO.puts("La entrega adicional fue rechazada: #{motivo}")
+            {validas, rechazadas ++ [{entrega, motivo}]}
+        end
+
+      {:error, :formato_invalido} ->
+        IO.puts("El formato de la entrega no es válido.")
+        {validas, rechazadas}
+    end
+  end
+
+  defp imprimir_reportes(validas, rechazadas, productores, tanques, liquidacion) do
+    conteos_rechazos = Reportes.contar_rechazos(rechazadas)
+    Reportes.imprimir_r1(rechazadas, conteos_rechazos)
+
+    ocupacion = Reportes.ocupacion_tanques(validas, tanques)
+    Reportes.imprimir_r2(ocupacion)
+
+    litros_por_dia = Reportes.litros_por_dia(validas)
+    Reportes.imprimir_r3(litros_por_dia)
+
+    liquidacion_ordenada = Reportes.ordenar_liquidacion(liquidacion)
+    Reportes.imprimir_r4(liquidacion_ordenada)
+
+    lideres_por_dia = Reportes.lideres_por_dia(validas)
+    Reportes.imprimir_r5(lideres_por_dia, productores)
+
+    mejores = Reportes.mejor_calidad(validas, productores)
+    Reportes.imprimir_r6(mejores)
+
+    resumen = Reportes.resumen_r7(liquidacion)
+    Reportes.imprimir_r7(resumen)
+
+    productores_en_todos =
+      Reportes.productores_en_todos_los_tanques(validas, productores, tanques)
+
+    Reportes.imprimir_r8(productores_en_todos)
+  end
+
+  defp solicitar_comprobante(productores, validas) do
+    IO.write("\nIngrese el código del productor para el comprobante: ")
+
+    codigo =
+      case IO.gets("") do
+        nil -> ""
+        texto -> String.trim(texto)
+      end
+
+    codigo
+    |> Liquidacion.generar_comprobante(productores, validas)
+    |> Liquidacion.imprimir_comprobante()
+  end
+end
+
+Principal.ejecutar()
