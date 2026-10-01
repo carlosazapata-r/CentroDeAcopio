@@ -38,4 +38,29 @@ defmodule Reportes do
     Enum.each(conteos, fn {motivo, cantidad} -> IO.puts("  #{motivo}: #{cantidad}") end)
     :ok
   end
+  # R2: ocupación de tanques
+
+  # Devuelve una lista de mapas ordenada por porcentaje, de mayor a menor
+  def ocupacion_tanques(validas, tanques) do
+    por_tanque = Enum.group_by(validas, fn e -> e.tanque end)
+
+    ocupacion =
+      for t <- tanques do
+        litros =
+          por_tanque
+          |> Map.get(t.id, [])
+          |> Enum.map(fn e -> e.litros end)
+          |> Enum.sum()
+
+        %{
+          id: t.id,
+          nombre: t.nombre,
+          litros: litros,
+          capacidad: t.capacidad,
+          porcentaje: litros / t.capacidad * 100
+        }
+      end
+
+    Enum.sort_by(ocupacion, fn t -> t.porcentaje end, :desc)
+  end
 end
