@@ -96,6 +96,12 @@ defmodule Reportes do
       {dia, litros}
     end
   end
+  #Map.Merge/3
+  def combinar_litros_diarios(litros_centro, litros_vecino) do
+    Map.merge(litros_centro, litros_vecino, fn _dia, litros_locales, litros_vecino ->
+      litros_locales + litros_vecino
+    end)
+  end
 
   def imprimir_r3(litros_dia) do
     IO.puts("\n===== R3. Litros recibidos por día (meta: #{@meta_diaria} L) =====")
