@@ -16,6 +16,7 @@ defmodule Datos do
       # P10 usa transporte pero no tiene entregas válidas
       %{codigo: "P10", nombre: "Paula Mejía", transporte: true}
     ]
+  end
      def tanques do
     [
       %{id: "T1", nombre: "Tanque Norte", capacidad: 6000},
@@ -155,4 +156,3 @@ defmodule Datos do
   end
   end
 
-end
