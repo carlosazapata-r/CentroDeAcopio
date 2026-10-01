@@ -337,6 +337,55 @@ defmodule Reportes do
     :ok
   end
 
+  #R7
+
+    @doc """
+  Calcula el total pagado y el costo promedio por litro de la semana.
+  """
+  def resumen_r7(liquidacion) do
+    total_pagado =
+      liquidacion
+      |> Enum.map(fn productor -> productor.neto end)
+      |> Enum.sum()
+
+    total_litros =
+      liquidacion
+      |> Enum.map(fn productor -> productor.litros end)
+      |> Enum.sum()
+
+    costo_promedio =
+      if total_litros > 0 do
+        total_pagado / total_litros
+      else
+        nil
+      end
+
+    %{
+      total_pagado: total_pagado,
+      total_litros: total_litros,
+      costo_promedio: costo_promedio
+    }
+  end
+
+  @doc """
+  Imprime el total pagado y el costo promedio por litro.
+  """
+  def imprimir_r7(resumen) do
+    IO.puts("\nR7. Total pagado y costo promedio por litro")
+    IO.puts("Total pagado: #{formatear_pesos(resumen.total_pagado)}")
+    IO.puts("Litros válidos recibidos: #{formatear_litros(resumen.total_litros)} L")
+
+    case resumen.costo_promedio do
+      nil ->
+        IO.puts("Costo promedio: no calculable porque no hubo litros recibidos")
+
+      costo ->
+        IO.puts("Costo promedio pagado por litro: $#{Float.round(costo, 2)}")
+    end
+
+    :ok
+  end
+
 
   defp formatear_litros(litros), do: Float.to_string(Float.round(litros / 1, 1))
 
