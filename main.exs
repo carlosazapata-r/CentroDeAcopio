@@ -42,29 +42,32 @@ defmodule Principal do
     solicitar_comprobante(productores, validas)
   end
 
-  defp solicitar_entrega_adicional(validas, rechazadas, productores, tanques) do
-    IO.puts("\nIngrese una entrega adicional")
-    IO.puts("(productor;tanque;dia;litros;grasa)")
-    IO.write("o Enter para omitir: ")
+defp solicitar_entrega_adicional(validas, rechazadas, productores, tanques) do
+  IO.puts("\nIngrese una entrega adicional")
+  IO.puts("(productor;tanque;dia;litros;grasa)")
+  IO.write("o Enter para omitir: ")
 
-    case IO.gets("") do
-      nil ->
+  case IO.gets("") do
+    :eof ->
+      {validas, rechazadas}
+
+    {:error, _} ->
+      {validas, rechazadas}
+
+    texto ->
+      if String.trim(texto) == "" do
         {validas, rechazadas}
-
-      texto ->
-        if String.trim(texto) == "" do
-          {validas, rechazadas}
-        else
-          procesar_entrega_adicional(
-            texto,
-            validas,
-            rechazadas,
-            productores,
-            tanques
-          )
-        end
-    end
+      else
+        procesar_entrega_adicional(
+          texto,
+          validas,
+          rechazadas,
+          productores,
+          tanques
+        )
+      end
   end
+end
 
   defp procesar_entrega_adicional(texto, validas, rechazadas, productores, tanques) do
     case Validacion.parsear_entrega(texto) do
