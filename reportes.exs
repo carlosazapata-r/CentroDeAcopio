@@ -386,6 +386,38 @@ defmodule Reportes do
     :ok
   end
 
+  #R8
+    @doc """
+  Devuelve los productores con al menos una entrega válida en cada tanque.
+  """
+  def productores_en_todos_los_tanques(entregas_validas, productores, tanques) do
+    Enum.filter(productores, fn productor ->
+      Enum.all?(tanques, fn tanque ->
+        Enum.any?(entregas_validas, fn entrega ->
+          entrega.productor == productor.codigo and entrega.tanque == tanque.id
+        end)
+      end)
+    end)
+  end
+
+  @doc """
+  Imprime los productores que realizaron entregas válidas en todos los tanques.
+  """
+  def imprimir_r8(productores) do
+    IO.puts("\nR8. Productores con entregas válidas en todos los tanques")
+
+    case productores do
+      [] ->
+        IO.puts("Ningún productor entregó leche en todos los tanques.")
+
+      _ ->
+        Enum.each(productores, fn productor ->
+          IO.puts("#{productor.nombre} (#{productor.codigo})")
+        end)
+    end
+
+    :ok
+  end
 
   defp formatear_litros(litros), do: Float.to_string(Float.round(litros / 1, 1))
 
