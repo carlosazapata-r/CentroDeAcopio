@@ -63,4 +63,21 @@ defmodule Reportes do
 
     Enum.sort_by(ocupacion, fn t -> t.porcentaje end, :desc)
   end
+  def imprimir_r2(ocupacion) do
+    IO.puts("\n R2. Ocupación de tanques : ")
+
+    Enum.each(ocupacion, fn t ->
+      IO.puts(
+        String.pad_trailing(t.id, 5) <>
+          String.pad_trailing(t.nombre, 18) <>
+          String.pad_leading(formatear_litros(t.litros), 9) <>
+          " L de " <>
+          String.pad_leading(Integer.to_string(t.capacidad), 5) <>
+          " L  " <>
+          formatear_porcentaje(t.porcentaje)
+      )
+    end)
+
+    :ok
+  end
 end
