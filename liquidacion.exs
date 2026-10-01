@@ -159,32 +159,32 @@ defmodule Liquidacion do
   Imprime el comprobante o informa si el código no existe.
   """
   def imprimir_comprobante({:ok, comprobante}) do
-    IO.puts("\nComprobante del productor")
-    IO.puts("Nombre: #{comprobante.nombre}")
-    IO.puts("Código: #{comprobante.codigo}")
+    Util.mostrar("\nComprobante del productor")
+    Util.mostrar("Nombre: #{comprobante.nombre}")
+    Util.mostrar("Código: #{comprobante.codigo}")
 
-    IO.puts("\nDetalle por día:")
+    Util.mostrar("\nDetalle por día:")
 
     Enum.each(comprobante.dias, fn detalle ->
-      IO.puts("Día #{detalle.dia}")
-      IO.puts("  Litros: #{Float.round(detalle.litros / 1, 1)} L")
-      IO.puts("  Valor de entregas: #{formatear_moneda(detalle.valor_entregas)}")
-      IO.puts("  Bonificación del día: #{formatear_moneda(detalle.bonificacion)}")
+      Util.mostrar("Día #{detalle.dia}")
+      Util.mostrar("  Litros: #{Float.round(detalle.litros / 1, 1)} L")
+      Util.mostrar("  Valor de entregas: #{formatear_moneda(detalle.valor_entregas)}")
+      Util.mostrar("  Bonificación del día: #{formatear_moneda(detalle.bonificacion)}")
     end)
 
-    IO.puts("\nResumen semanal:")
-    IO.puts("Total de entregas: #{comprobante.total_entregas}")
-    IO.puts("Total de litros: #{Float.round(comprobante.litros / 1, 1)} L")
-    IO.puts("Valor de entregas: #{formatear_moneda(comprobante.valor_entregas)}")
-    IO.puts("Total de bonificaciones: #{formatear_moneda(comprobante.bonificaciones)}")
-    IO.puts("Descuento de transporte: #{formatear_moneda(comprobante.descuento_transporte)}")
-    IO.puts("Neto a pagar: #{formatear_moneda(comprobante.neto)}")
+    Util.mostrar("\nResumen semanal:")
+    Util.mostrar("Total de entregas: #{comprobante.total_entregas}")
+    Util.mostrar("Total de litros: #{Float.round(comprobante.litros / 1, 1)} L")
+    Util.mostrar("Valor de entregas: #{formatear_moneda(comprobante.valor_entregas)}")
+    Util.mostrar("Total de bonificaciones: #{formatear_moneda(comprobante.bonificaciones)}")
+    Util.mostrar("Descuento de transporte: #{formatear_moneda(comprobante.descuento_transporte)}")
+    Util.mostrar("Neto a pagar: #{formatear_moneda(comprobante.neto)}")
 
     :ok
   end
 
   def imprimir_comprobante({:error, :productor_desconocido}) do
-    IO.puts("No se encontró un productor con ese código.")
+    Util.mostrar("No se encontró un productor con ese código.")
     :ok
   end
 

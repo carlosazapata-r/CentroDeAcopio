@@ -2,6 +2,7 @@
 
 Code.require_file("datos.exs", __DIR__)
 Code.require_file("validacion.exs", __DIR__)
+Code.require_file("util.exs", __DIR__)
 Code.require_file("liquidacion.exs", __DIR__)
 Code.require_file("reportes.exs", __DIR__)
 
@@ -35,29 +36,22 @@ defmodule Principal do
 
     imprimir_reportes(validas, rechazadas, productores, tanques, liquidacion)
 
-    IO.puts("\nMediciones propias")
-    IO.puts("Validación inicial: #{tiempo_validacion} microsegundos")
-    IO.puts("Liquidación semanal: #{tiempo_liquidacion} microsegundos")
+    Util.mostrar("\nMediciones propias")
+    Util.mostrar("Validación inicial: #{tiempo_validacion} microsegundos")
+    Util.mostrar("Liquidación semanal: #{tiempo_liquidacion} microsegundos")
 
     solicitar_comprobante(productores, validas)
   end
 
-defp solicitar_entrega_adicional(validas, rechazadas, productores, tanques) do
-  IO.puts("\nIngrese una entrega adicional")
-  IO.puts("(productor;tanque;dia;litros;grasa)")
-  IO.write("o Enter para omitir: ")
+  defp solicitar_entrega_adicional(validas, rechazadas, productores, tanques) do
+    Util.mostrar("\nIngrese una entrega adicional")
+    Util.mostrar("(productor;tanque;dia;litros;grasa)")
 
-  case IO.gets("") do
-    :eof ->
-      {validas, rechazadas}
-
-    {:error, _} ->
-      {validas, rechazadas}
-
-    texto ->
-      if String.trim(texto) == "" do
+    case Util.leer("o Enter para omitir: ") do
+      "" ->
         {validas, rechazadas}
-      else
+
+      texto ->
         procesar_entrega_adicional(
           texto,
           validas,
@@ -65,25 +59,24 @@ defp solicitar_entrega_adicional(validas, rechazadas, productores, tanques) do
           productores,
           tanques
         )
-      end
+    end
   end
-end
 
   defp procesar_entrega_adicional(texto, validas, rechazadas, productores, tanques) do
     case Validacion.parsear_entrega(texto) do
       {:ok, entrega} ->
         case Validacion.validar_entrega(entrega, productores, tanques) do
           {:ok, entrega_valida} ->
-            IO.puts("La entrega adicional fue aceptada.")
+            Util.mostrar("La entrega adicional fue aceptada.")
             {validas ++ [entrega_valida], rechazadas}
 
           {:error, motivo} ->
-            IO.puts("La entrega adicional fue rechazada: #{motivo}")
+            Util.mostrar("La entrega adicional fue rechazada: #{motivo}")
             {validas, rechazadas ++ [{entrega, motivo}]}
         end
 
       {:error, :formato_invalido} ->
-        IO.puts("El formato de la entrega no es válido.")
+        Util.mostrar("El formato de la entrega no es válido.")
         {validas, rechazadas}
     end
   end
@@ -117,13 +110,7 @@ end
   end
 
   defp solicitar_comprobante(productores, validas) do
-    IO.write("\nIngrese el código del productor para el comprobante: ")
-
-    codigo =
-      case IO.gets("") do
-        nil -> ""
-        texto -> String.trim(texto)
-      end
+    codigo = Util.leer("\nIngrese el código del productor para el comprobante: ")
 
     codigo
     |> Liquidacion.generar_comprobante(productores, validas)
