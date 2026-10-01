@@ -28,5 +28,22 @@ defmodule Validacion do
 
     {validas, rechazadas}
   end
+  # Convierte el texto "productor;tanque;dia;litros;grasa" en una entrega.
+  # Si el formato está mal devuelve {:error, :formato_invalido}
+  def parsear_entrega(texto) do
+    campos =
+      texto
+      |> String.trim()
+      |> String.split(";")
+      |> Enum.map(&String.trim/1)
 
+    with [productor, tanque, dia_texto, litros_texto, grasa_texto] <- campos,
+         {dia, ""} <- Integer.parse(dia_texto),
+         {:ok, litros} <- convertir_numero(litros_texto),
+         {:ok, grasa} <- convertir_numero(grasa_texto) do
+      {:ok, %{productor: productor, tanque: tanque, dia: dia, litros: litros, grasa: grasa}}
+    else
+      _ -> {:error, :formato_invalido}
+    end
+  end
 end
