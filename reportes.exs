@@ -124,10 +124,17 @@ defmodule Reportes do
   end
    # R4: liquidación de productores
 
-  # liquidacion es una lista de mapas:
-  # %{codigo, nombre, litros, valor_entregas, bonificaciones, transporte, neto}
-  def ordenar_liquidacion(liquidacion) do
-    Enum.sort_by(liquidacion, fn p -> p.neto end, :desc)
+  @doc """
+  Ordena la liquidacion para crear un ranking.
+
+  El segundo argumento es una keyword list con las opciones `:por` y `:orden`.
+  Por defecto, el ranking se organiza por pago neto de mayor a menor.
+  """
+  def ranking(liquidacion, opciones) do
+    campo = Keyword.get(opciones, :por, :neto)
+    orden = Keyword.get(opciones, :orden, :desc)
+
+    Enum.sort_by(liquidacion, fn productor -> Map.fetch!(productor, campo) end, orden)
   end
 
   def imprimir_r4(liquidacion_ordenada) do
