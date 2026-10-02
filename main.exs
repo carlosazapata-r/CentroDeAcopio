@@ -95,7 +95,7 @@ defmodule Principal do
     litros_por_dia = Reportes.litros_por_dia(validas)
     Reportes.imprimir_r3(litros_por_dia)
 
-    liquidacion_ordenada = Reportes.ordenar_liquidacion(liquidacion)
+    liquidacion_ordenada = Reportes.ranking(liquidacion, por: :neto, orden: :desc)
     Reportes.imprimir_r4(liquidacion_ordenada)
 
     lideres_por_dia = Reportes.lideres_por_dia(validas)
